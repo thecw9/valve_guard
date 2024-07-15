@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  valve_guard_auth_service_db:
+    container_name: valve_guard_auth_service_db
+    image: postgres:16
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - valve_guard_auth_service_pgdata:/var/lib/postgresql/data/
+    env_file:
+      - .dockerenv
+    ports:
+      - "8040:5432"
+    networks:
+      - valve_guard_auth_service_network
+
+  valve_guard_auth_service_app:
+    container_name: valve_guard_auth_service_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - .:/app
+    depends_on:
+      - valve_guard_auth_service_db
+    ports:
+      - "8041:8000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/docs"]
+      interval: 5s
+      timeout: 10s
+      retries: 50
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - valve_guard_auth_service_network
+
+volumes:
+  valve_guard_auth_service_pgdata:
+    driver: local
+
+networks:
+  valve_guard_auth_service_network:
+    driver: bridge

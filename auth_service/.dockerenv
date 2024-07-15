@@ -1,0 +1,9 @@
+POSTGRES_HOST=valve_guard_auth_service_db
+# POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=valve_guard
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST_AUTH_METHOD=trust
+PGDATA=/var/lib/postgresql/data/pgdata
+

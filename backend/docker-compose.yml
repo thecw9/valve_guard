@@ -1,0 +1,109 @@
+version: "3"
+
+services:
+  valve_guard_redis:
+    container_name: valve_guard_redis
+    image: redis:7.2.4-bookworm
+    restart: always
+    networks:
+      - valve_guard_backend_network
+
+  valve_guard_backend_db:
+    container_name: valve_guard_backend_db
+    image: postgres:16
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - valve_guard_backend_pgdata:/var/lib/postgresql/data/
+    env_file:
+      - .dockerenv
+    ports:
+      - "5435:5432"
+    networks:
+      - valve_guard_backend_network
+
+  valve_guard_backend_app:
+    container_name: valve_guard_backend_app
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - .:/app
+    depends_on:
+      - valve_guard_backend_db
+    ports:
+      - "8020:8000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/docs"]
+      interval: 5s
+      timeout: 10s
+      retries: 50
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - valve_guard_backend_network
+
+  valve_guard_worker:
+    container_name: valve_guard_backend_worker
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      valve_guard_redis:
+        condition: service_started
+      valve_guard_backend_app:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - valve_guard_backend_network
+
+  valve_guard_beat:
+    container_name: valve_guard_backend_beat
+    build:
+      context: .
+      dockerfile: Dockerfile.beat
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      - valve_guard_worker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - valve_guard_backend_network
+
+  valve_guard_flower:
+    container_name: valve_guard_backend_flower
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.flower
+    environment:
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:5555"]
+      interval: 5s
+      timeout: 10s
+      retries: 50
+    ports:
+      - 5555:5555
+    depends_on:
+      - valve_guard_worker
+    networks:
+      - valve_guard_backend_network
+
+volumes:
+  valve_guard_backend_pgdata:
+    driver: local
+
+networks:
+  valve_guard_backend_network:
+    driver: bridge

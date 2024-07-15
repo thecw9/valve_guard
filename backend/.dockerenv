@@ -1,0 +1,22 @@
+POSTGRES_HOST=valve_guard_backend_db
+# POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=valve_guard
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST_AUTH_METHOD=trust
+PGDATA=/var/lib/postgresql/data/pgdata
+# PGDATA=./pgdata
+
+
+NRMOCK_SERVICE_URL=http://host.docker.internal:8021
+
+DATA_SERVICE_URL=http://valve_guard_backend_app:8000
+
+CELERY_BROKER_URL=redis://valve_guard_redis:6379/0
+CELERY_RESULT_BACKEND=redis://valve_guard_redis:6379/0
+# CELERY_BROKER_URL=redis://localhost:6379/0
+# CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+TZ=Asia/Shanghai
+

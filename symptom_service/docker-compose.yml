@@ -1,0 +1,53 @@
+version: "3"
+
+services:
+  valve_guard_symptom_service_db:
+    container_name: valve_guard_symptom_service_db
+    image: postgres:16
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: valve_guard
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - valve_guard_symptom_service_pgdata:/var/lib/postgresql/data/
+    ports:
+      - "8043:5432"
+    networks:
+      - valve_guard_symptom_service_network
+
+  valve_guard_symptom_service_app:
+    container_name: valve_guard_symptom_service_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - .:/app
+    depends_on:
+      - valve_guard_symptom_service_db
+    ports:
+      - "8044:8000"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/docs"]
+      interval: 5s
+      timeout: 10s
+      retries: 50
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - valve_guard_symptom_service_network
+
+volumes:
+  valve_guard_symptom_service_pgdata:
+    driver: local
+
+networks:
+  valve_guard_symptom_service_network:
+    driver: bridge

@@ -1,0 +1,14 @@
+[Unit]
+Description=Sound Daq Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/thecw/Sync/valve_guard/daq_service/
+ExecStart=bash /home/thecw/Sync/valve_guard/daq_service/start_service.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

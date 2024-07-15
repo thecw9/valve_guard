@@ -1,0 +1,17 @@
+FROM node:lts-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+# RUN npm install
+RUN npm --registry https://registry.npmmirror.com/ install 
+
+COPY . .
+
+EXPOSE 5173
+
+ENV IS_DOCKER=true
+
+CMD ["npm", "run", "dev"]
+
